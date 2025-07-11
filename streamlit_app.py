@@ -1,13 +1,16 @@
 
 import streamlit as st
-import openai
+from openai import OpenAI
 from docx import Document
 from datetime import datetime
+import os
 import io
 
-# === CONFIGURAÇÃO OPENROUTER ===
-openai.api_key = "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"
-openai.api_base = "https://openrouter.ai/api/v1"
+# === CONFIGURAÇÃO OPENROUTER COM NOVA API OPENAI ===
+client = OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY"),
+    base_url="https://openrouter.ai/api/v1"
+)
 
 st.set_page_config(page_title="Assistente de Linha de Cuidado", layout="centered")
 st.title("🩺 Assistente Inteligente de Linha de Cuidado")
@@ -16,14 +19,14 @@ st.title("🩺 Assistente Inteligente de Linha de Cuidado")
 @st.cache_data(show_spinner=False)
 def gerar_sugestao(resposta):
     try:
-        completion = openai.ChatCompletion.create(
+        completion = client.chat.completions.create(
             model="mistralai/mistral-7b-instruct",
             messages=[
                 {"role": "system", "content": "Você é um especialista em gestão clínica e linhas de cuidado."},
                 {"role": "user", "content": f"Avalie a seguinte resposta e sugira melhorias: {resposta}"}
             ]
         )
-        return completion['choices'][0]['message']['content']
+        return completion.choices[0].message.content
     except Exception as e:
         return f"(Erro ao gerar sugestão: {e})"
 
